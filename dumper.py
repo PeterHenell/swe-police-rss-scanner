@@ -66,15 +66,42 @@ def parse_html(html_string):
 
 
 def parse_datetime(str_arr):
-    d = datetime.datetime(str_arr[0], str_arr[1], str_arr[2], str_arr[3], str_arr[4], str_arr[5], str_arr[6])
+    # d = datetime.datetime(str_arr[0], str_arr[1], str_arr[2], str_arr[3], str_arr[4], str_arr[5], str_arr[6])
+    d = datetime.datetime(str_arr[0], str_arr[1], str_arr[2], str_arr[3], str_arr[4], str_arr[5])
     return d
 
 
 def get_link_body(link):
     html_string = get_html(link)
     parsed = parse_html(html_string)
-    print('%s %s' % (link, parsed))
+    # print('%s %s' % (link, parsed))
     return parsed
+
+
+def parse_location(title):
+    if len(title.split(',')) > 2:
+        return title.split(',')[2]
+    return title
+
+
+def parse_reported_date(title):
+    return title.split(',')[0]
+
+
+def parse_report_type(title):
+    return title.split(',')[1]
+
+
+def parse_street(summary):
+    if len(summary.split('.')) > 1:
+        return summary.split('.')[0]
+    return summary
+
+
+def parse_commune(summary):
+    if len(summary.split('.')) > 1:
+        return summary.split('.')[1]
+    return summary
 
 
 def parse_to_obj(json_string):
@@ -85,8 +112,13 @@ def parse_to_obj(json_string):
             "summary": entry['summary'],
             "title": entry['title'],
             "link": entry['link'],
-            "published": entry['published_parsed'],
-            "body": get_link_body(entry['link']),
+            "published": parse_datetime(entry['published_parsed']),
+            "location": parse_location(entry['title']),
+            "reported_date": parse_reported_date(entry['title']),
+            "report_type": parse_report_type(entry['title']),
+            "location_street": parse_street(entry['summary']),
+            "location_commune": parse_commune(entry['summary']),
+            # "body": get_link_body(entry['link']),
         }
 
         l.append(x)
