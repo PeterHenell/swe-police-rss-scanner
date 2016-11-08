@@ -108,11 +108,19 @@ def parse_to_obj(json_string):
     l = []
     for entry in json_string['entries']:
         x = {
-            "id": entry['id'],
+            "entry_id": entry['id'],
             "summary": entry['summary'],
             "title": entry['title'],
             "link": entry['link'],
             "published": parse_datetime(entry['published_parsed']),
+
+            "publish_details": {
+                "year": parse_datetime(entry['published_parsed']).year,
+                "month": parse_datetime(entry['published_parsed']).month,
+                "day": parse_datetime(entry['published_parsed']).day,
+                "hour": parse_datetime(entry['published_parsed']).hour,
+                "minute": parse_datetime(entry['published_parsed']).minute,
+            },
             "location": parse_location(entry['title']),
             "reported_date": parse_reported_date(entry['title']),
             "report_type": parse_report_type(entry['title']),

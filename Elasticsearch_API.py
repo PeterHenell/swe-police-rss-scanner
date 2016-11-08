@@ -36,11 +36,12 @@ class ElasticsearchAPI:
                                 config['password'],
                                 config['username'])
 
-    def consume_all(self, items, doc_type, index_name):
+    def consume_all(self, items, doc_type, index_name, id_column_name):
         print('Pushing %s docs to index: %s' % (len(items), index_name))
         actions = []
         for doc in items:
             action = {
+                "_id": doc[id_column_name],
                 "_index": index_name,
                 "_type": doc_type,
                 "_source": doc,
@@ -51,11 +52,19 @@ class ElasticsearchAPI:
 
         return len(items)
 
+    def find_ids(self, ids, doc_type, index_name):
+        body = {"ids": ids}
+        result = self.es.mget(index=index_name, doc_type=doc_type, body=body)
+        print(result)
+        if len(result) > 0:
+            return [r['_id'] for r in result['docs'] if r['found'] is True]
+        return []
+
     def init_indexes_for(self, sources):
         for source in sources:
             self.init_index_for_source(source)
 
-    def set_mapping(self, index_name, doc_type, source_mapping):
+    def set_mapping(self, doc_type, index_name, source_mapping):
         self.es.indices.put_mapping(
             index=index_name,
             doc_type=doc_type,

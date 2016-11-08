@@ -87,10 +87,13 @@ def main(arguments):
                 },
             }
         }
+    es.set_mapping('police_events', 'events', mapping)
 
-    es.set_mapping('events', 'police_events', mapping)
-
-    es.consume_all(rssEntries, 'police_events', 'events')
+    existing_entries = es.find_ids([r['entry_id'] for r in rssEntries], 'police_events', 'events')
+    print(existing_entries)
+    new_entries = [e for e in rssEntries if e['entry_id'] not in existing_entries]
+    print(len(new_entries))
+    es.consume_all(new_entries, 'police_events', 'events', 'entry_id')
     # dumper.print_json(entry)
 
 
