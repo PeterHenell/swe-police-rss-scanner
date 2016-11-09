@@ -14,9 +14,9 @@ __maintainer__ = "Peter Henell"
 __email__ = "dnd"
 __status__ = "dev"
 
-
-polisen_events = 'https://polisen.se/Stockholms_lan/Aktuellt/RSS/Lokal-RSS---Handelser/Lokala-RSS-listor1/Handelser-RSS---Stockholms-lan/?feed=rss'
+# polisen_events = 'https://polisen.se/Stockholms_lan/Aktuellt/RSS/Lokal-RSS---Handelser/Lokala-RSS-listor1/Handelser-RSS---Stockholms-lan/?feed=rss'
 polisen_news = 'https://polisen.se/Stockholms_lan/Aktuellt/RSS/Lokal-RSS---Nyheter/Lokala-RSS-listor1/Nyheter-RSS---Stockholms-lan/?feed=rss'
+polisen_events = 'https://polisen.se/Aktuellt/Handelser/Handelser-i-hela-landet/?feed=rss'
 
 
 def main(arguments):
@@ -41,12 +41,12 @@ def main(arguments):
     # for stat_collector in stat_collectors:
     if len(arguments) == 2:
         if arguments[1] == 'truncate_data':
-            es.delete_index('events')
+            es.delete_index('police_events')
 
     result = dumper.get(polisen_events)
     rssEntries = dumper.parse_to_obj(result)
 
-    es.create_index('events')
+    es.create_index('police_events')
     mapping = {
             "properties": {
                 "published": {
@@ -55,15 +55,15 @@ def main(arguments):
                 },
                 "title": {
                     "type": "string",
-                    "index": "not_analyzed"
+                    "index": "analyzed"
                 },
                 "link": {
                     "type": "string",
-                    "index": "not_analyzed"
+                    "index": "analyzed"
                 },
                 "summary": {
                     "type": "string",
-                    "index": "not_analyzed"
+                    "index": "analyzed"
                 },
                 "location": {
                     "type": "string",
@@ -85,16 +85,24 @@ def main(arguments):
                     "type": "string",
                     "index": "not_analyzed"
                 },
+                "html_body": {
+                    "type": "string",
+                    "index": "analyzed"
+                },
             }
         }
-    es.set_mapping('police_events', 'events', mapping)
+    es.set_mapping(index_name='police_events', doc_type='events', mapping=mapping)
 
-    existing_entries = es.find_ids([r['entry_id'] for r in rssEntries], 'police_events', 'events')
-    print(existing_entries)
+    existing_entries = es.find_ids([r['entry_id'] for r in rssEntries], index_name='police_events', doc_type='events')
+
     new_entries = [e for e in rssEntries if e['entry_id'] not in existing_entries]
-    print(len(new_entries))
-    es.consume_all(new_entries, 'police_events', 'events', 'entry_id')
-    # dumper.print_json(entry)
+    print('Found %i rss items of which %i are new' % (len(rssEntries), len(new_entries)))
+
+    # Getting the HTML body only for the new entries to reduce overhear
+    for entry in new_entries:
+        entry['html_body'] = dumper.get_link_body(entry['link'])
+
+    es.consume_all(new_entries, index_name='police_events', doc_type='events', id_column_name='entry_id')
 
 
 if __name__ == '__main__':

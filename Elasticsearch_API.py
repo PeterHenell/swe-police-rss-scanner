@@ -55,7 +55,7 @@ class ElasticsearchAPI:
     def find_ids(self, ids, doc_type, index_name):
         body = {"ids": ids}
         result = self.es.mget(index=index_name, doc_type=doc_type, body=body)
-        print(result)
+        # print(result)
         if len(result) > 0:
             return [r['_id'] for r in result['docs'] if r['found'] is True]
         return []
@@ -64,11 +64,11 @@ class ElasticsearchAPI:
         for source in sources:
             self.init_index_for_source(source)
 
-    def set_mapping(self, doc_type, index_name, source_mapping):
+    def set_mapping(self, doc_type, index_name, mapping):
         self.es.indices.put_mapping(
             index=index_name,
             doc_type=doc_type,
-            body=source_mapping)
+            body=mapping)
 
     def delete_index(self, index_name):
         print('Truncating data in index: %s' % index_name)

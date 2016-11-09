@@ -73,14 +73,17 @@ def parse_datetime(str_arr):
 
 def get_link_body(link):
     html_string = get_html(link)
-    parsed = parse_html(html_string)
+    # parsed = parse_html(html_string)
     # print('%s %s' % (link, parsed))
-    return parsed
+    return html_string
 
 
 def parse_location(title):
     if len(title.split(',')) > 2:
-        return title.split(',')[2]
+        arr = title.split(',')
+        # The last entry should be the location
+        return arr[len(arr)-1]
+        # return title.split(',')[2]
     return title
 
 
@@ -114,10 +117,10 @@ def parse_to_obj(json_string):
             "link": entry['link'],
             "published": parse_datetime(entry['published_parsed']),
 
-            "publish_details": {
+            "publication": {
                 "year": parse_datetime(entry['published_parsed']).year,
                 "month": parse_datetime(entry['published_parsed']).month,
-                "day": parse_datetime(entry['published_parsed']).day,
+                "day_of_month": parse_datetime(entry['published_parsed']).day,
                 "hour": parse_datetime(entry['published_parsed']).hour,
                 "minute": parse_datetime(entry['published_parsed']).minute,
             },
@@ -126,7 +129,6 @@ def parse_to_obj(json_string):
             "report_type": parse_report_type(entry['title']),
             "location_street": parse_street(entry['summary']),
             "location_commune": parse_commune(entry['summary']),
-            # "body": get_link_body(entry['link']),
         }
 
         l.append(x)
@@ -135,6 +137,5 @@ def parse_to_obj(json_string):
 
 def print_json(json_string):
     import json
-    # print(json_string)
     print(json.dumps(json_string, sort_keys=True,
                      indent=4, separators=(',', ': ')))
