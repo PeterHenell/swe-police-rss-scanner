@@ -85,6 +85,10 @@ def main(arguments):
                     "type": "string",
                     "index": "not_analyzed"
                 },
+                "location_region": {
+                    "type": "string",
+                    "index": "not_analyzed"
+                },
                 "html_body": {
                     "type": "string",
                     "index": "analyzed"

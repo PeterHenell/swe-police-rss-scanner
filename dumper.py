@@ -107,6 +107,11 @@ def parse_commune(summary):
     return summary
 
 
+def parse_region(link):
+    arr = link.split('/')
+    return arr[5]
+
+
 def parse_to_obj(json_string):
     l = []
     for entry in json_string['entries']:
@@ -116,17 +121,19 @@ def parse_to_obj(json_string):
             "title": entry['title'],
             "link": entry['link'],
             "published": parse_datetime(entry['published_parsed']),
+            "description": entry['description'],
 
             "publication": {
                 "year": parse_datetime(entry['published_parsed']).year,
-                "month": parse_datetime(entry['published_parsed']).month,
+                "month_of_year": parse_datetime(entry['published_parsed']).month,
                 "day_of_month": parse_datetime(entry['published_parsed']).day,
-                "hour": parse_datetime(entry['published_parsed']).hour,
-                "minute": parse_datetime(entry['published_parsed']).minute,
+                "hour_of_day": parse_datetime(entry['published_parsed']).hour,
+                "minute_of_hour": parse_datetime(entry['published_parsed']).minute,
             },
             "location": parse_location(entry['title']),
             "reported_date": parse_reported_date(entry['title']),
             "report_type": parse_report_type(entry['title']),
+            "location_region": parse_region(entry['link']),
             "location_street": parse_street(entry['summary']),
             "location_commune": parse_commune(entry['summary']),
         }
